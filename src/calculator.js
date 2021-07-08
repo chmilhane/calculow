@@ -3,9 +3,6 @@ const { MessageButton, MessageActionRow } = require('discord-buttons');
 
 const Evaluate = require('./evaluate');
 
-const { APIMessage } = require('discord-buttons/src/v12/Classes/APIMessage');
-const { CreateAPIMessage } = require('./api/interactions');
-
 function CalculatorComponent() {
 	const Grid = [];
 	const Buttons = [
@@ -63,33 +60,19 @@ function CalculatorComponent() {
 	return Grid;
 }
 
-module.exports = async(interaction, client) => {
-	const { member } = interaction;
+module.exports = async(message, client) => {
 	let currentResult = '0';
 
 	const Embed = new MessageEmbed()
-		.setAuthor(`${member.user.username}#${member.user.discriminator}`, `https://cdn.discordapp.com/avatars/${member.user.id}/${member.user.avatar}.png`)
+		.setAuthor(message.author.tag, message.author.displayAvatarURL())
 		.setDescription(`\`\`\`${currentResult}\`\`\``)
 		.setTimestamp()
 		.setColor(0xFFCD4D);
 
-	const componentData = new APIMessage(
-		client.channels.resolve(interaction.channel_id),
-		{
-			components: CalculatorComponent()
-		}
-	);
-
-	const data = await CreateAPIMessage(interaction, Embed, client);
-	const EmbedMessage = await client.api.channels[interaction.channel_id].messages.post({
-		// data: {
-		// 	type: 4,
-			data: {
-				...data,
-				components: componentData.resolveData().data.components
-			}
-		// }
-	}).then((d) => client.actions.MessageCreate.handle(d).message);
+	const EmbedMessage = await message.channel.send({
+		embed: Embed,
+		components:	CalculatorComponent()
+	});
 
 	function AddInput(input) {
 		if (currentResult != '0' && !currentResult.startsWith('ERROR')) {
@@ -100,12 +83,13 @@ module.exports = async(interaction, client) => {
 	}
 
 	client.on('clickButton', async(button) => {;
-		if (button.clicker && button.clicker.id !== member.user.id) {
+		if (button.clicker && button.clicker.id !== message.author.id) {
 			const Embed = new MessageEmbed()
-				.setDescription(`You cannot use this calculator, it belongs to <@${member.user.id}>.`)
+				.setDescription(`You cannot use this calculator, it belongs to <@${message.author.id}>.`)
+				.setTimestamp()
 				.setColor('#ed2939');
 
-			button.reply.send(Embed, true);
+			await button.reply.send(Embed, true);
 
 			return;
 		}
@@ -128,7 +112,7 @@ module.exports = async(interaction, client) => {
 
 			case '=':
 				if (currentResult != '0' && !currentResult.startsWith('ERROR')) {
-					currentResult = Evaluate(currentResult, interaction);
+					currentResult = Evaluate(currentResult, message);
 				}
 
 				break;
