@@ -1,7 +1,7 @@
 const { MessageEmbed } = require('discord.js');
 const { MessageButton, MessageActionRow } = require('discord-buttons');
 
-const Evaluate = require('./evaluate');
+const { Evaluate, ClampString } = require('./util');
 
 function CalculatorComponent() {
 	const Grid = [];
@@ -130,7 +130,7 @@ module.exports = async(message, client) => {
 			Embed.setColor('#ed2939');
 		}
 
-		EmbedMessage.edit(Embed.setDescription(`\`\`\`${currentResult}\`\`\``));
+		EmbedMessage.edit(Embed.setDescription(`\`\`\`${ClampString(currentResult)}\`\`\``));
 
 		await button.reply.defer();
 	});

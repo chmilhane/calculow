@@ -7,7 +7,7 @@ const client = new Client();
 require('discord-buttons')(client);
 
 const Calculator = require('./src/calculator');
-const Evaluate = require('./src/evaluate');
+const { Evaluate, ClampString } = require('./src/util');
 
 const { red } = require('chalk');
 
@@ -29,7 +29,6 @@ function HelpMessage(message) {
 client.on('message', (message) => {
 	try {
 		if (message.author.bot) return;
-		// if (message.type === 'dm') return;
 
 		if (message.content.startsWith(Prefix + 'help') || message.mentions.has(client.user)) {
 			HelpMessage(message);
@@ -53,8 +52,8 @@ client.on('message', (message) => {
 			const embed = new MessageEmbed()
 				.setAuthor(message.author.tag, message.author.displayAvatarURL())
 				.addFields([
-					{ name: '\\▶️ Input', value: `\`\`\`${expr}\`\`\`` },
-					{ name: '\\◀️ Output', value: `\`\`\`${result}\`\`\`` },
+					{ name: '\\▶️ Input', value: `\`\`\`${ClampString(expr)}\`\`\`` },
+					{ name: '\\◀️ Output', value: `\`\`\`${ClampString(result)}\`\`\`` },
 				])
 				.setTimestamp()
 				.setColor(color);
@@ -62,8 +61,6 @@ client.on('message', (message) => {
 			message.channel.send(embed);
 			return;
 		}
-
-		// message.delete({ timeout: 3000 });
 	}	catch({ message }) {
 		console.error(red(`[Error]: ${message}`));
 	}
